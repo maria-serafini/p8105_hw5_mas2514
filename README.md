@@ -1,1 +1,3 @@
-# p8105_hw5_mas2514
+# P8105 Homework 5 - Maria Serafini
+
+This repo contains code for homework 5
