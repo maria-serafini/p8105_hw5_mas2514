@@ -8,7 +8,7 @@ output: github_document
 library(tidyverse)
 
 knitr::opts_chunk$set(
-  fig.width = 6,
+  fig.width = 8,
   fig.asp = .6,
   out.width = "90%"
   )
@@ -90,6 +90,7 @@ sim_power = function(mu, n_subj = 30, sigma = 5) {
 }
 ```
 
+
 The code below generates 5000 simulated datasets under the model 
 $X \sim N(\mu, \sigma)$ with $n = 30$, $\sigma = 5$, and $\mu = 0$. For each iteration, it calls the `sim_power()` function to draw a sample and run a one-sample t-test of $H_0: \mu = 0$. The resulting tibble contains the estimated sample means and p-values for all 5000 simulated datasets.
 
@@ -105,12 +106,13 @@ sim_power_results_df <-
   unnest(results)
 ```
 
+
 The code below repeats the simulation for $\mu = 0{:}6$, generating 5000 datasets for each mean from the model $X \sim N(\mu, \sigma)$ with $n = 30$ and $\sigma = 5$, For every dataset, it runs a one-sample t-test of $H_0: \mu = 0$ and records the estimated mean and p-value. 
 
 ```{r}
 sim_power_results_df <-
   expand_grid(
-    mu = 0,
+    mu = 0:6,
     iter = 1:5000
   ) |>
   mutate(
@@ -123,8 +125,7 @@ sim_power_results_df <-
 From the plot below, we can see that as the true value of μ increases (i.e., as the effect size becomes larger), the power of the test increases. When μ = 0, the proportion of rejections is close to the nominal significance level of 0.05, and as μ increases, the probability of rejecting the null hypothesis approaches 1. This illustrates that larger effect sizes are easier to detect with a one-sample t-test.
 
 ```{r}
-power_by_mu <-
-  sim_power_results_df |>
+sim_power_results_df |>
   group_by(mu) |>
   summarize(
     power = mean(p_value < 0.05),
@@ -137,6 +138,29 @@ power_by_mu <-
     x = "True Value of μ",
     y = "Power (Probability of Rejecting False Null Hypothesis)",
     title = "Power of One-sample t-test as a Function of Effect Size"
+  )
+```
+
+
+From the plot below, we can see that the average estimate of $\hat{\mu}$ (represented by the black line) across all samples lies very close to the 1:1 line, reflecting that the sample mean is an unbiased estimator of the true mean $\mu$. In contrast, the average of $\hat{\mu}$ among only those samples for which the null hypothesis $H_0!:;\mu = 0$ was rejected (represented by the dashed purple line) is noticeably higher than the true value of $\mu$, especially when $\mu$ is small. This occurs because significant results tend to arise only when the sample mean deviates farther from zero, creating an upward selection bias. As $\mu$ becomes large and most tests reject the null, this bias diminishes and the two averages converge.
+
+```{r}
+sim_power_results_df |>
+  group_by(mu) |>
+  summarize(
+    avg_mu_hat = mean(mu_hat),                    
+    avg_mu_hat_reject = mean(mu_hat[p_value < 0.05]), 
+    .groups = "drop"
+  ) |> 
+  ggplot(aes(x = mu, y = avg_mu_hat)) +
+  geom_line(color = "black") +
+  geom_point(color = "black") + 
+  geom_line(aes(y = avg_mu_hat_reject), color = "purple", linetype = "dashed") +
+  geom_point(aes(y = avg_mu_hat_reject), color = "purple") +
+  labs(
+    x = "True Value of μ",
+    y = "Average Estimate of μ̂",
+    title = "Average Estimate of μ (All Samples & Only Samples with Rejected Null) vs. True Value of μ"
   )
 ```
 
