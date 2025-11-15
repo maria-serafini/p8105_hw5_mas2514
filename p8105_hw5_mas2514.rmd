@@ -10,7 +10,7 @@ library(tidyverse)
 knitr::opts_chunk$set(
   fig.width = 8,
   fig.asp = .6,
-  out.width = "90%"
+  out.width = "80%"
   )
 
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
@@ -68,7 +68,10 @@ This plot shows the probability calculated above as a function of group size.
 bday_sim_results |> 
   ggplot(aes(x = bdays, y = prob_repeat)) +
   geom_point() +
-  geom_line()
+  geom_line() +
+  labs(
+    
+  )
 ```
 
 From the plot we can see that as group size increases, the probability that at least two people will share a birthday increases. There is a 25% chance of at least two people sharing a birthday once the group size reaches approximately 15, a 50% chance once the group size reaches approximately 23, a 75% chance once the group size reaches approximately 32, and close to a 100% chance once the group passes approximately 50. These results indicate that a large sample size is not necessarily needed for two people to likely share a birthday. 
@@ -240,5 +243,29 @@ city_prop_df <-
       ~unsolved_homicide_prop(homicide_count_df, .x)
     )) |> 
   unnest(homicide_results)
+```
+
+
+The code below creates a plot of the estimates and 95% CIs for each city organized according to the proportion of unsolved homicides. 
+
+```{r, fig.height=10, fig.width=10}
+city_prop_df |> 
+  mutate(
+    city_state = fct_reorder(city_state, estimate)
+  ) |> 
+  ggplot(
+    aes(x = city_state, y = estimate)
+  ) +
+  geom_point() +
+  geom_errorbar(
+    aes(ymin = lower_ci, ymax = upper_ci)
+  ) +
+  labs(
+    x = "City, State",
+    y = "Estimated Proportion of Unsolved Homicides",
+    title = "Estimated Proportion of Unsolved Homicides by City",
+    subtitle = "(Points = Estimated Proportion, Error Bars = 95% Condfidence Interval)"
+  ) +
+  coord_flip()
 ```
 
