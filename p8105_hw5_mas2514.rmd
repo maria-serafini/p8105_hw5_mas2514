@@ -164,3 +164,32 @@ sim_power_results_df |>
   )
 ```
 
+
+## Problem 3
+
+The code below imports the `homicide-data` dataset from the Washington Post. This dataset consists of individual homicide records collected from 50 large U.S. cities. Each row represents a single homicide case, and the variables provide information about the victim, the circumstances of the homicide, and the status of the investigation. Key variables include the `city` and `state` in which the homicide occurred, the `reported_date` of the homicide, the approximate geographic location of the homicide given by `longitude` and `latitude`, and `disposition` which represents the investigative status of the case. 
+
+```{r}
+homicide_df <- read_csv("data/homicide-data.csv")
+```
+
+
+The code below creates a `homicide_count` dataset, which includes a city-level summary of the homicide data. The `city` and `state` variables are combined into a single`city_state` variable. A misclassified city is corrected from “Tulsa, AL” to “Tulsa, OK” (confirmed via geographic coordinates provided as `latitude` and `longitude`). The data are then grouped by city, and for each city the total number of homicides and the number of unsolved homicides (those classified as “Closed without arrest” or “Open/No arrest”) are calculated.
+
+```{r}
+homicide_count_df <-
+  homicide_df |> 
+  unite(city_state, city, state, sep = ", ") |> 
+  mutate(
+    city_state = case_when(
+      city_state == "Tulsa, AL" ~ "Tulsa, OK",
+      TRUE ~ city_state)
+    ) |>
+  group_by(city_state) |> 
+  summarize(
+    tot_homicide = n(),
+    unsolved_homicide = sum(disposition %in% c("Closed without arrest", "Open/No arrest")), 
+    .groups = "drop"
+  )
+```
+
