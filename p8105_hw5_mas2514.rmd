@@ -110,7 +110,7 @@ The code below repeats the simulation for $\mu = 0{:}6$, generating 5000 dataset
 ```{r}
 sim_power_results_df <-
   expand_grid(
-    mu = 0:6,
+    mu = 0,
     iter = 1:5000
   ) |>
   mutate(
@@ -119,4 +119,24 @@ sim_power_results_df <-
   unnest(results)
 ```
 
+
+From the plot below, we can see that as the true value of μ increases (i.e., as the effect size becomes larger), the power of the test increases. When μ = 0, the proportion of rejections is close to the nominal significance level of 0.05, and as μ increases, the probability of rejecting the null hypothesis approaches 1. This illustrates that larger effect sizes are easier to detect with a one-sample t-test.
+
+```{r}
+power_by_mu <-
+  sim_power_results_df |>
+  group_by(mu) |>
+  summarize(
+    power = mean(p_value < 0.05),
+    .groups = "drop"
+  ) |> 
+  ggplot(aes(x = mu, y = power)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x = "True Value of μ",
+    y = "Power (Probability of Rejecting False Null Hypothesis)",
+    title = "Power of One-sample t-test as a Function of Effect Size"
+  )
+```
 
